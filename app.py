@@ -6,6 +6,8 @@
 import streamlit as st
 
 import torch
+import torch.nn as nn
+
 import torchvision.transforms as transforms
 
 from PIL import Image
@@ -14,6 +16,7 @@ import numpy as np
 import faiss
 
 from huggingface_hub import hf_hub_download
+
 
 
 # ==========================
@@ -26,8 +29,9 @@ st.set_page_config(
 )
 
 
+
 # ==========================
-# Configuration
+# Config
 # ==========================
 
 device = torch.device(
@@ -36,39 +40,39 @@ device = torch.device(
 )
 
 
-# ضع اسم Hugging Face repo الخاص بك هنا
 repo_id = "heshamdahy/stanford-products-retrieval-assets"
 
 
 
 # ==========================
-# Load Model + Assets
+# Load Assets
 # ==========================
 
 @st.cache_resource
 def load_assets():
 
-    # Download files from Hugging Face
 
-    model_file = hf_hub_download(
+    # Download files
+
+    model_path = hf_hub_download(
         repo_id=repo_id,
         filename="model.pth"
     )
 
 
-    index_file = hf_hub_download(
+    index_path = hf_hub_download(
         repo_id=repo_id,
         filename="index.faiss"
     )
 
 
-    embeddings_file = hf_hub_download(
+    embeddings_path = hf_hub_download(
         repo_id=repo_id,
         filename="embeddings.npy"
     )
 
 
-    image_paths_file = hf_hub_download(
+    image_paths_path = hf_hub_download(
         repo_id=repo_id,
         filename="image_paths.npy"
     )
@@ -76,26 +80,37 @@ def load_assets():
 
 
     # ======================
-    # Load Model
+    # Load ConvNeXt Model
     # ======================
 
     model = torch.load(
-        model_file,
+        model_path,
         map_location=device,
         weights_only=False
     )
 
+
+    # Remove classifier
+    # keep only feature extractor
+
+    if hasattr(model, "classifier"):
+
+        model.classifier = nn.Identity()
+
+
+
     model.to(device)
+
     model.eval()
 
 
 
     # ======================
-    # Load FAISS Index
+    # Load FAISS
     # ======================
 
     index = faiss.read_index(
-        index_file
+        index_path
     )
 
 
@@ -105,7 +120,7 @@ def load_assets():
     # ======================
 
     embeddings = np.load(
-        embeddings_file
+        embeddings_path
     )
 
 
@@ -115,7 +130,7 @@ def load_assets():
     # ======================
 
     image_paths = np.load(
-        image_paths_file,
+        image_paths_path,
         allow_pickle=True
     )
 
@@ -134,13 +149,29 @@ model, index, embeddings, image_paths = load_assets()
 
 
 # ==========================
-# Image Preprocessing
+# Debug Information
+# ==========================
+
+st.sidebar.write(
+    "FAISS dimension:",
+    index.d
+)
+
+st.sidebar.write(
+    "Embedding shape:",
+    embeddings.shape
+)
+
+
+
+# ==========================
+# Transform
 # ==========================
 
 transform = transforms.Compose([
 
     transforms.Resize(
-        (224, 224)
+        (224,224)
     ),
 
     transforms.ToTensor(),
@@ -158,7 +189,9 @@ transform = transforms.Compose([
             0.224,
             0.225
         ]
+
     )
+
 ])
 
 
@@ -169,9 +202,14 @@ transform = transforms.Compose([
 
 def extract_feature(image):
 
-    image = transform(image)
+
+    image = transform(
+        image
+    )
+
 
     image = image.unsqueeze(0)
+
 
     image = image.to(device)
 
@@ -179,12 +217,14 @@ def extract_feature(image):
 
     with torch.no_grad():
 
-        feature = model(image)
+        feature = model(
+            image
+        )
 
 
 
     # ConvNeXt output:
-    # [batch, 768, 1, 1]
+    # [1,768,1,1]
 
     if feature.ndim == 4:
 
@@ -199,7 +239,7 @@ def extract_feature(image):
 
 
 
-    # Normalize embedding
+    # L2 Normalization
 
     feature = feature / np.linalg.norm(
         feature,
@@ -215,7 +255,7 @@ def extract_feature(image):
 
 
 # ==========================
-# Streamlit UI
+# UI
 # ==========================
 
 st.title(
@@ -224,13 +264,13 @@ st.title(
 
 
 st.write(
-    "Upload an image and retrieve similar products using ConvNeXt + FAISS"
+    "ConvNeXt-Tiny + FAISS"
 )
 
 
 
 uploaded_file = st.file_uploader(
-    "Upload product image",
+    "Upload Product Image",
     type=[
         "jpg",
         "jpeg",
@@ -241,7 +281,7 @@ uploaded_file = st.file_uploader(
 
 
 k = st.slider(
-    "Number of similar images",
+    "Number of results",
     min_value=1,
     max_value=20,
     value=5
@@ -254,7 +294,9 @@ if uploaded_file:
 
     query_image = Image.open(
         uploaded_file
-    ).convert("RGB")
+    ).convert(
+        "RGB"
+    )
 
 
     st.subheader(
@@ -269,7 +311,9 @@ if uploaded_file:
 
 
 
-    if st.button("Search"):
+    if st.button(
+        "Search"
+    ):
 
 
         query_embedding = extract_feature(
@@ -277,6 +321,25 @@ if uploaded_file:
         )
 
 
+        # Check dimensions
+
+        if query_embedding.shape[1] != index.d:
+
+            st.error(
+                f"""
+                Feature dimension mismatch!
+
+                FAISS expects: {index.d}
+
+                Model output: {query_embedding.shape[1]}
+                """
+            )
+
+            st.stop()
+
+
+
+        # Search
 
         distances, indices = index.search(
             query_embedding,
@@ -286,7 +349,7 @@ if uploaded_file:
 
 
         st.subheader(
-            "Retrieved Images"
+            "Similar Products"
         )
 
 
@@ -297,20 +360,22 @@ if uploaded_file:
         for i, idx in enumerate(indices[0]):
 
 
-            image_path = image_paths[idx]
+            path = image_paths[idx]
 
 
             try:
 
-                result_image = Image.open(
-                    image_path
-                ).convert("RGB")
+                result = Image.open(
+                    path
+                ).convert(
+                    "RGB"
+                )
 
 
                 with cols[i]:
 
                     st.image(
-                        result_image,
+                        result,
                         caption=f"Distance: {distances[0][i]:.4f}"
                     )
 
@@ -321,5 +386,5 @@ if uploaded_file:
                 with cols[i]:
 
                     st.error(
-                        f"Cannot load image\n{e}"
+                        str(e)
                     )
