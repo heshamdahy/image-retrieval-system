@@ -87,6 +87,7 @@ Nearest Neighbor Retrieval
 ## Dataset
 
 Stanford Online Products Dataset
+https://www.kaggle.com/datasets/liucong12601/stanford-online-products-dataset
 
 - Product image retrieval benchmark
 - 11,318 training classes
