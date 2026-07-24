@@ -26,7 +26,7 @@ Retrieval indexes:
 - IndexIVFFlat (large-scale search)
 
 
-### Baseline 2: Metric Learning Retrieval (Future Work)
+### Baseline 2: Metric Learning Retrieval 
 
 The second baseline will focus on learning a more discriminative embedding space using metric learning.
 
