@@ -101,6 +101,20 @@ https://www.kaggle.com/datasets/liucong12601/stanford-online-products-dataset
 - FAISS
 - Metric Learning
 
+## Model Files
+
+Due to large file size, trained model weights and FAISS index files are hosted separately.
+
+Files:
+
+- ConvNeXt-Tiny model file
+- Image embeddings
+- FAISS index
+- Image paths
+
+Download link:
+[https://drive.google.com/drive/folders/1BtDGSLraESMsfj1TwMFpY582Psl6zTjv?usp=sharing]
+
 
 ## Future Improvements
 
