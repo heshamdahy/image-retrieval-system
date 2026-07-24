@@ -1,0 +1,7 @@
+streamlit
+torch
+torchvision
+numpy
+pillow
+faiss-cpu
+huggingface_hub
