@@ -294,7 +294,7 @@ if uploaded_file:
                 with cols[i]:
                     st.image(
                         result_image,
-                        caption=f"Distance: {distances[0][i]:.4f}",
+                        caption=f"Similarity: {distances[0][i]:.4f}",
                         use_container_width=True,
                     )
 
