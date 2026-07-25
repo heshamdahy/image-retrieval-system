@@ -80,6 +80,8 @@ def load_assets():
         map_location=device,
         weights_only=False
     )
+    
+    model.classifier = nn.Identity()
 
     model.to(device)
     model.eval()
