@@ -222,7 +222,7 @@ st.title(
 
 
 st.write(
-    "Upload an image and retrieve similar products using ConvNeXt + FAISS"
+    "Upload an image and retrieve similar products"
 )
 
 
