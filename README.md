@@ -113,7 +113,8 @@ Files:
 - Image paths
 
 Download link:
-[https://drive.google.com/drive/folders/1BtDGSLraESMsfj1TwMFpY582Psl6zTjv?usp=sharing]
+[https://drive.google.com/drive/folders/1BtDGSLraESMsfj1TwMFpY582Psl6zTjv?usp=sharing] or 
+[https://huggingface.co/heshamdahy/stanford-products-retrieval-assets]
 
 
 ## Future Improvements
