@@ -80,11 +80,11 @@ def load_assets():
         filename="open_clip.pth"
     )
 
-    # FAISS HNSW
+    # FAISS Flat Index (بحث دقيق، من غير HNSW)
 
     index_path = hf_hub_download(
         repo_id=ASSET_REPO,
-        filename="index_hnsw.faiss"
+        filename="index_flat.faiss"
     )
 
     # Paths
@@ -184,7 +184,7 @@ def load_image_from_hf(path):
 st.title("🛍️ Stanford Products Image Retrieval")
 
 st.write(
-    "Upload an image and retrieve similar products using OpenCLIP + FAISS HNSW"
+    "Upload an image and retrieve similar products using OpenCLIP + FAISS"
 )
 
 uploaded_file = st.file_uploader(
@@ -207,6 +207,14 @@ if uploaded_file:
 
     st.image(query_image, width=300)
 
+    # تحقق سريع إن حجم الفهرس متطابق مع عدد مسارات الصور
+    if index.ntotal != len(image_paths):
+        st.warning(
+            f"Mismatch: index has {index.ntotal} vectors, "
+            f"but image_paths has {len(image_paths)} entries. "
+            "Retrieved indices may be invalid."
+        )
+
     if st.button("Search"):
 
         query_embedding = extract_feature(query_image)
@@ -218,6 +226,15 @@ if uploaded_file:
         cols = st.columns(k)
 
         for i, idx in enumerate(indices[0]):
+
+            # حماية من idx خارج حدود مصفوفة image_paths (أو -1)
+            if idx < 0 or idx >= len(image_paths):
+                with cols[i]:
+                    st.error(
+                        f"Index {idx} out of range "
+                        f"(image_paths has {len(image_paths)} entries)"
+                    )
+                continue
 
             image_path = str(image_paths[idx])
 
@@ -234,4 +251,20 @@ if uploaded_file:
             except Exception as e:
                 with cols[i]:
                     st.error(f"Failed loading image\n{image_path}\n{e}")
-                 
+
+
+
+
+
+
+    
+   
+
+
+
+   
+   
+
+
+   
+               
