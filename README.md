@@ -1,124 +1,183 @@
 # Stanford Online Products Image Retrieval
 
-Deep Learning based image retrieval system using ConvNeXt-Tiny and FAISS.
+A deep learning-based image retrieval system built on the **Stanford Online Products** dataset. This project explores both **classification-based** and **metric learning** approaches for large-scale visual similarity search using **FAISS**.
 
-## Overview
+---
 
-This project explores image retrieval on the Stanford Online Products dataset.
+# Overview
 
-The work is divided into multiple baselines:
+The project is divided into two baselines, each representing a different retrieval strategy.
 
-### Baseline 1: Classification-based Retrieval
+## Baseline 1: Classification-Based Retrieval
 
-A ConvNeXt-Tiny model is fine-tuned as a classification model using the product class IDs.
+The first baseline fine-tunes a **ConvNeXt-Tiny** model as a product classifier.
 
-- Number of classes: 11,318
-- Objective: Cross Entropy Classification
-- Backbone: ConvNeXt-Tiny
+* **Backbone:** ConvNeXt-Tiny
+* **Objective:** Cross Entropy Loss
+* **Training Classes:** 11,318
 
 After training, the classification head is removed and the backbone is used as a feature extractor.
 
-The extracted feature embeddings are indexed using FAISS for nearest neighbor search.
+The extracted embeddings are indexed using FAISS for image retrieval.
 
-Retrieval indexes:
+### Retrieval Indexes
 
-- IndexFlatL2 (initial baseline)
-- IndexIVFFlat (large-scale search)
+* FAISS IndexFlatL2
+* FAISS IndexIVFFlat
 
+---
 
-### Baseline 2: Metric Learning Retrieval 
+## Baseline 2: Metric Learning Retrieval (Final)
 
-The second baseline will focus on learning a more discriminative embedding space using metric learning.
+The second baseline replaces the classification objective with **Metric Learning**, enabling the model to learn a more discriminative embedding space for visual similarity.
 
-Planned approach:
+### Architecture
 
-- Backbone: ConvNeXt-Tiny
-- Loss: Triplet Loss
-- Retrieval Index: FAISS HNSW
+* **Backbone:** OpenCLIP
+* **Embedding Head:** Fully Connected Layer (512 → 256)
+* **Loss Function:** Triplet Loss
+* **Embedding Normalization:** L2 Normalization
+* **Similarity Metric:** Cosine Similarity
+* **Retrieval Index:** FAISS HNSW
 
-The goal is to optimize the embedding space so that visually similar products are closer together while dissimilar products are separated.
+Instead of predicting product classes, the model learns embeddings where:
 
-## Pipeline
+* Similar products are mapped close together.
+* Different products are pushed farther apart.
 
-### Baseline 1  
+This approach significantly improves image retrieval quality compared to the classification baseline.
 
+---
+
+# Pipeline
+
+## Baseline 1
+
+```text
 Image
-|
-v
+   │
+   ▼
 ConvNeXt-Tiny
-|
-v
+   │
+   ▼
 Classification Head
-|
-v
+   │
+   ▼
 Feature Extraction
-|
-v
-FAISS IndexFlat / IVF
-|
-v
+   │
+   ▼
+FAISS IndexFlatL2 / IndexIVFFlat
+   │
+   ▼
 Top-K Similar Images
+```
 
+## Baseline 2
 
-
-### Baseline 2
-
-
+```text
 Image
-|
-v
-ConvNeXt-Tiny
-|
-v
-Embedding Vector
-|
-v
+   │
+   ▼
+OpenCLIP
+   │
+   ▼
+Projection Head (512 → 256)
+   │
+   ▼
 Triplet Loss Training
-|
-v
-FAISS HNSW
-|
-v
-Nearest Neighbor Retrieval
+   │
+   ▼
+L2 Normalization
+   │
+   ▼
+FAISS HNSW (Cosine Similarity)
+   │
+   ▼
+Top-K Similar Images
+```
 
+---
 
+# Features
 
+* Two complete retrieval baselines
+* ConvNeXt-Tiny classification-based retrieval
+* OpenCLIP metric learning retrieval
+* Triplet Loss training
+* FAISS IndexFlatL2
+* FAISS IndexIVFFlat
+* FAISS HNSW indexing
+* Cosine Similarity search
+* Streamlit web application
+* Hugging Face model hosting
 
-## Dataset
+---
 
-Stanford Online Products Dataset
+# Live Demo
+
+**Streamlit App**
+
+https://image-retrieval-system-3ucsgpxujhcq4a2atjffaj.streamlit.app/
+
+---
+
+# Dataset
+
+**Stanford Online Products**
+
 https://www.kaggle.com/datasets/liucong12601/stanford-online-products-dataset
 
-- Product image retrieval benchmark
-- 11,318 training classes
+* Product image retrieval benchmark
+* 11,318 training classes
+* Large-scale fine-grained product recognition dataset
 
+---
 
-## Technologies
+# Technologies
 
-- PyTorch
-- Torchvision
-- ConvNeXt-Tiny
-- FAISS
-- Metric Learning
+* Python
+* PyTorch
+* Torchvision
+* OpenCLIP
+* ConvNeXt-Tiny
+* FAISS
+* Metric Learning
+* Triplet Loss
+* Streamlit
+* Hugging Face Hub
 
-## Model Files
+---
 
-Due to large file size, trained model weights and FAISS index files are hosted separately.
+# Model Assets
 
-Files:
+Due to GitHub file size limitations, the trained models and retrieval assets are hosted on Hugging Face.
 
-- ConvNeXt-Tiny model file
-- Image embeddings
-- FAISS index
-- Image paths
+Assets include:
 
-Download link:
-[https://drive.google.com/drive/folders/1BtDGSLraESMsfj1TwMFpY582Psl6zTjv?usp=sharing] or 
-[https://huggingface.co/heshamdahy/stanford-products-retrieval-assets]
+* OpenCLIP model
+* ConvNeXt-Tiny model
+* FAISS indexes
+* Image embeddings
+* Image path mappings
 
+**Hugging Face**
 
-## Future Improvements
+https://huggingface.co/heshamdahy/stanford-products-retrieval-assets
 
-- Evaluate Recall@K
-- Evaluate mAP
-- Hyperparameter tuning for FAISS indexes
+---
+
+# Repository
+
+GitHub Repository
+
+https://github.com/heshamdahy/image-retrieval-system
+
+---
+
+# Future Work
+
+* Evaluate Recall@K
+* Evaluate mAP
+* Compare additional metric learning losses (ArcFace, Circle Loss, Contrastive Loss)
+* Experiment with larger Vision-Language Models
+* Improve retrieval latency on million-scale datasets
