@@ -1,7 +1,8 @@
 streamlit
 torch
 torchvision
+pillow
 numpy
 faiss-cpu
-Pillow
 huggingface_hub
+open_clip_torch
