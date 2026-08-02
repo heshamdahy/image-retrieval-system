@@ -94,7 +94,7 @@ def load_assets():
 
     model_path = hf_hub_download(
         repo_id=ASSET_REPO,
-        filename="open_clip.model"
+        filename="open_clip.pth"
     )
 
 
